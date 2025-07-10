@@ -91,7 +91,11 @@ vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
 -- Set to true if you have a Nerd Font installed and selected in the terminal
-vim.g.have_nerd_font = false
+vim.g.have_nerd_font = true
+--
+-- disable netrw at the very start of your init.lua
+vim.g.loaded_netrw = 1
+vim.g.loaded_netrwPlugin = 1
 
 -- [[ Setting options ]]
 -- See `:help vim.o`
@@ -109,6 +113,7 @@ vim.o.mouse = 'a'
 
 -- Don't show the mode, since it's already in the status line
 vim.o.showmode = false
+vim.o.conceallevel = 1
 
 -- Sync clipboard between OS and Neovim.
 --  Schedule the setting after `UiEnter` because it can increase startup-time.
@@ -152,6 +157,8 @@ vim.o.splitbelow = true
 vim.o.list = true
 vim.opt.listchars = { tab = '» ', trail = '·', nbsp = '␣' }
 
+-- optionally enable 24-bit colour
+vim.opt.termguicolors = true
 -- Preview substitutions live, as you type!
 vim.o.inccommand = 'split'
 
@@ -962,6 +969,118 @@ require('lazy').setup({
     --    - Incremental selection: Included, see `:help nvim-treesitter-incremental-selection-mod`
     --    - Show your current context: https://github.com/nvim-treesitter/nvim-treesitter-context
     --    - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
+  },
+  {
+    'epwalsh/obsidian.nvim',
+    version = '*', -- recommended, use latest release instead of latest commit
+    lazy = true,
+    ft = 'markdown',
+    -- Replace the above line with this if you only want to load obsidian.nvim for markdown files in your vault:
+    -- event = {
+    --   -- If you want to use the home shortcut '~' here you need to call 'vim.fn.expand'.
+    --   -- E.g. "BufReadPre " .. vim.fn.expand "~" .. "/my-vault/*.md"
+    --   -- refer to `:h file-pattern` for more examples
+    --   "BufReadPre path/to/my-vault/*.md",
+    --   "BufNewFile path/to/my-vault/*.md",
+    -- },
+    dependencies = {
+      -- Required.
+      'nvim-lua/plenary.nvim',
+      'hrsh7th/nvim-cmp',
+
+      -- see below for full list of optional dependencies 👇
+    },
+
+    opts = {
+      workspaces = {
+        {
+          name = 'Noosphere',
+          path = '~/Documents/Noosphere/Noosphere',
+        },
+      },
+
+      -- Optional, completion of wiki links, local markdown links, and tags using nvim-cmp.
+      completion = {
+        -- Set to false to disable completion.
+        nvim_cmp = true,
+        -- Trigger completion at 2 chars.
+        min_chars = 2,
+      },
+
+      log_level = vim.log.levels.INFO,
+
+      -- Optional, configure key mappings. These are the defaults. If you don't want to set any keymappings this
+      -- way then set 'mappings = {}'.
+      mappings = {
+        -- Overrides the 'gf' mapping to work on markdown/wiki links
+        ['gf'] = {
+          action = function()
+            return require('obsidian').util.gf_passthrough()
+          end,
+          opts = { noremap = false, expr = true, buffer = true },
+        },
+        -- Toggle check-boxes.
+        ['<leader>ch'] = {
+          action = function()
+            return require('obsidian').util.toggle_checkbox()
+          end,
+          opts = { buffer = true },
+        },
+        -- Smart action depending on context, either follow link or toggle checkbox.
+        ['<cr>'] = {
+          action = function()
+            return require('obsidian').util.smart_action()
+          end,
+          opts = { buffer = true, expr = true },
+        },
+      },
+
+      -- Where to put new notes. Valid options are
+      --  * "current_dir" - put new notes in same directory as the current buffer.
+      --  * "notes_subdir" - put new notes in the default notes subdirectory.
+      new_notes_location = 'current_dir',
+
+      -- Optional, customize how wiki links are formatted. You can set this to one of:
+      --  * "use_alias_only", e.g. '[[Foo Bar]]'
+      --  * "prepend_note_id", e.g. '[[foo-bar|Foo Bar]]'
+      --  * "prepend_note_path", e.g. '[[foo-bar.md|Foo Bar]]'
+      --  * "use_path_only", e.g. '[[foo-bar.md]]'
+      -- Or you can set it to a function that takes a table of options and returns a string, like this:
+      wiki_link_func = function(opts)
+        return require('obsidian.util').wiki_link_id_prefix(opts)
+      end,
+
+      -- Optional, customize how markdown links are formatted.
+      markdown_link_func = function(opts)
+        return require('obsidian.util').markdown_link(opts)
+      end,
+
+      -- Either 'wiki' or 'markdown'.
+      preferred_link_style = 'wiki',
+
+      -- Optional, boolean or a function that takes a filename and returns a boolean.
+      -- `true` indicates that you don't want obsidian.nvim to manage frontmatter.
+      disable_frontmatter = false,
+      -- see below for full list of options 👇
+    },
+    {
+      'nvim-tree/nvim-tree.lua',
+      dependencies = { 'nvim-tree/nvim-web-devicons' },
+      opts = {
+        sort = {
+          sorter = 'case_sensitive',
+        },
+        view = {
+          width = 30,
+        },
+        renderer = {
+          group_empty = true,
+        },
+        filters = {
+          dotfiles = true,
+        },
+      },
+    },
   },
 
   -- The following comments only work if you have downloaded the kickstart repo, not just copy pasted the
