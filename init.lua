@@ -816,6 +816,7 @@ require('lazy').setup({
         opts = {},
       },
       'folke/lazydev.nvim',
+      'saghen/blink.compat', -- <-- ADD THIS DEPENDENCY
     },
     --- @module 'blink.cmp'
     --- @type blink.cmp.Config
@@ -861,9 +862,12 @@ require('lazy').setup({
       },
 
       sources = {
-        default = { 'lsp', 'path', 'snippets', 'lazydev' },
+        default = { 'lsp', 'path', 'snippets', 'lazydev', 'obsidian', 'obsidian_new', 'obsidian_tags' },
         providers = {
           lazydev = { module = 'lazydev.integrations.blink', score_offset = 100 },
+          obsidian = { name = 'obsidian', module = 'blink.compat.source' },
+          obsidian_new = { name = 'obsidian_new', module = 'blink.compat.source' },
+          obsidian_tags = { name = 'obsidian_tags', module = 'blink.compat.source' },
         },
       },
 
@@ -971,6 +975,24 @@ require('lazy').setup({
     --    - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
   },
   {
+    'nvim-tree/nvim-tree.lua',
+    dependencies = { 'nvim-tree/nvim-web-devicons' },
+    opts = {
+      sort = {
+        sorter = 'case_sensitive',
+      },
+      view = {
+        width = 30,
+      },
+      renderer = {
+        group_empty = true,
+      },
+      filters = {
+        dotfiles = true,
+      },
+    },
+  },
+  {
     'epwalsh/obsidian.nvim',
     version = '*', -- recommended, use latest release instead of latest commit
     lazy = true,
@@ -986,33 +1008,29 @@ require('lazy').setup({
     dependencies = {
       -- Required.
       'nvim-lua/plenary.nvim',
-      'hrsh7th/nvim-cmp',
 
       -- see below for full list of optional dependencies 👇
     },
-
     opts = {
       workspaces = {
         {
           name = 'Noosphere',
-          path = '~/Documents/Noosphere/Noosphere',
+          path = '~/Documents/Noosphere',
         },
       },
 
       -- Optional, completion of wiki links, local markdown links, and tags using nvim-cmp.
       completion = {
         -- Set to false to disable completion.
-        nvim_cmp = true,
+        nvim_cmp = false,
         -- Trigger completion at 2 chars.
         min_chars = 2,
       },
 
-      log_level = vim.log.levels.INFO,
-
       -- Optional, configure key mappings. These are the defaults. If you don't want to set any keymappings this
       -- way then set 'mappings = {}'.
       mappings = {
-        -- Overrides the 'gf' mapping to work on markdown/wiki links
+        -- Overrides the 'gf' mapping to work on markdown/wiki links within your vault.
         ['gf'] = {
           action = function()
             return require('obsidian').util.gf_passthrough()
@@ -1039,50 +1057,18 @@ require('lazy').setup({
       --  * "current_dir" - put new notes in same directory as the current buffer.
       --  * "notes_subdir" - put new notes in the default notes subdirectory.
       new_notes_location = 'current_dir',
-
-      -- Optional, customize how wiki links are formatted. You can set this to one of:
-      --  * "use_alias_only", e.g. '[[Foo Bar]]'
-      --  * "prepend_note_id", e.g. '[[foo-bar|Foo Bar]]'
-      --  * "prepend_note_path", e.g. '[[foo-bar.md|Foo Bar]]'
-      --  * "use_path_only", e.g. '[[foo-bar.md]]'
-      -- Or you can set it to a function that takes a table of options and returns a string, like this:
-      wiki_link_func = function(opts)
-        return require('obsidian.util').wiki_link_id_prefix(opts)
-      end,
-
-      -- Optional, customize how markdown links are formatted.
-      markdown_link_func = function(opts)
-        return require('obsidian.util').markdown_link(opts)
-      end,
-
-      -- Either 'wiki' or 'markdown'.
-      preferred_link_style = 'wiki',
-
-      -- Optional, boolean or a function that takes a filename and returns a boolean.
-      -- `true` indicates that you don't want obsidian.nvim to manage frontmatter.
-      disable_frontmatter = false,
       -- see below for full list of options 👇
     },
-    {
-      'nvim-tree/nvim-tree.lua',
-      dependencies = { 'nvim-tree/nvim-web-devicons' },
-      opts = {
-        sort = {
-          sorter = 'case_sensitive',
-        },
-        view = {
-          width = 30,
-        },
-        renderer = {
-          group_empty = true,
-        },
-        filters = {
-          dotfiles = true,
-        },
-      },
-    },
-  },
+    config = function(_, opts)
+      require('obsidian').setup(opts)
 
+      -- HACK: fix error, disable completion.nvim_cmp option, manually register sources
+      local cmp = require 'cmp'
+      cmp.register_source('obsidian', require('cmp_obsidian').new())
+      cmp.register_source('obsidian_new', require('cmp_obsidian_new').new())
+      cmp.register_source('obsidian_tags', require('cmp_obsidian_tags').new())
+    end,
+  },
   -- The following comments only work if you have downloaded the kickstart repo, not just copy pasted the
   -- init.lua. If you want these files, they are in the repository, so you can just download them and
   -- place them in the correct locations.
