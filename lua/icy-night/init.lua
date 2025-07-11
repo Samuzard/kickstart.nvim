@@ -22,13 +22,13 @@ local c = {
   magenta = '#f5c2e7',
   cyan = '#94e2d5',
   gray = '#6c7086',
-  -- Added all the missing keys below
   comment = '#6c7086', -- Using your gray color
   orange = '#f9af72', -- A reasonable orange
   border = '#3a4a61', -- A darker shade of blue/bg
   selection = '#457b9d', -- Using your 'highlight' color
   warning = '#f9e2af', -- Using your yellow color
   hint = '#94e2d5', -- Using your cyan color
+  visual = '#3b3f55',
 }
 
 function M.colorscheme()
@@ -44,12 +44,12 @@ function M.colorscheme()
   set(0, 'Normal', { fg = c.foreground, bg = c.background })
   set(0, 'NormalFloat', { fg = c.foreground, bg = c.background })
   set(0, 'FloatBorder', { fg = c.border, bg = c.background })
-  set(0, 'CursorLine', { bg = c.selection })
-  set(0, 'Visual', { bg = '#3b3f55' }) -- slightly stronger than selection, for visibility
+  set(0, 'CursorLine', { fg = c.foreground, bg = c.selection })
+  set(0, 'Visual', { fg = c.foreground, bg = c.visual })
   set(0, 'Search', { fg = c.background, bg = c.orange })
   set(0, 'IncSearch', { fg = c.background, bg = c.orange })
   set(0, 'StatusLine', { fg = c.foreground, bg = c.selection })
-  set(0, 'StatusLineNC', { fg = c.comment, bg = c.selection })
+  set(0, 'StatusLineNC', { fg = c.foreground, bg = c.selection })
   set(0, 'VertSplit', { fg = c.border })
   set(0, 'WinSeparator', { fg = c.border })
   set(0, 'LineNr', { fg = c.blue })
