@@ -959,7 +959,7 @@ require('lazy').setup({
     main = 'nvim-treesitter.configs', -- Sets main module to use for opts
     -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
     opts = {
-      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' },
+      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc', 'latex' },
       -- Autoinstall languages that are not installed
       auto_install = true,
       highlight = {
@@ -1073,6 +1073,45 @@ require('lazy').setup({
       cmp.register_source('obsidian_tags', require('cmp_obsidian_tags').new())
     end,
   },
+  {
+    'nvim-neorg/neorg',
+    enabled = false,
+    lazy = false,
+    version = '*',
+    dependencies = {
+      'nvim-lua/plenary.nvim',
+    },
+    config = function()
+      require('neorg').setup {
+        load = {
+          ['core.defaults'] = {},
+          ['core.concealer'] = {},
+          ['core.dirman'] = {
+            config = {
+              workspaces = {
+                Noosphere = '~/Documents/Noosphere/',
+              },
+              --default_workspace = 'Noosphere',
+            },
+          },
+        },
+      }
+      vim.wo.foldlevel = 99
+      vim.wo.conceallevel = 2
+    end,
+  },
+  { 'echasnovski/mini.nvim', version = false },
+  { 'nvim-tree/nvim-web-devicons', opts = {} },
+  {
+    'MeanderingProgrammer/render-markdown.nvim',
+    dependencies = { 'nvim-treesitter/nvim-treesitter', 'echasnovski/mini.nvim' }, -- if you use the mini.nvim suite
+    -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'echasnovski/mini.icons' }, -- if you use standalone mini plugins
+    -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-tree/nvim-web-devicons' }, -- if you prefer nvim-web-devicons
+    ---@module 'render-markdown'
+    ---@type render.md.UserConfig
+    opts = {},
+    completions = { blink = { enabled = true } },
+  },
   -- The following comments only work if you have downloaded the kickstart repo, not just copy pasted the
   -- init.lua. If you want these files, they are in the repository, so you can just download them and
   -- place them in the correct locations.
@@ -1120,6 +1159,5 @@ require('lazy').setup({
     },
   },
 })
-
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
