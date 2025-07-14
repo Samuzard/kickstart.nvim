@@ -1173,6 +1173,55 @@ require('lazy').setup({
       { '<c-\\>', '<cmd><C-U>TmuxNavigatePrevious<cr>' },
     },
   },
+  {
+    'folke/zen-mode.nvim',
+    opts = {
+      -- The configuration you provided goes here
+      window = {
+        backdrop = 0.95,
+        width = 120,
+        height = 1,
+        options = {
+          -- signcolumn = "no",
+          -- number = false,
+          -- relativenumber = false,
+          -- cursorline = false,
+          -- cursorcolumn = false,
+          -- foldcolumn = "0",
+          -- list = false,
+        },
+      },
+      plugins = {
+        options = {
+          enabled = true,
+          ruler = false,
+          showcmd = false,
+          laststatus = 0,
+        },
+        twilight = { enabled = true },
+        gitsigns = { enabled = false },
+        tmux = { enabled = false },
+        kitty = {
+          enabled = false,
+          font = '+4',
+        },
+        alacritty = {
+          enabled = false,
+          font = '14',
+        },
+        wezterm = {
+          enabled = false,
+          font = '+4',
+        },
+      },
+      on_open = function(win)
+        -- function to run when Zen mode opens
+      end,
+      on_close = function()
+        -- function to run when Zen mode closes
+      end,
+    },
+  },
   -- The following comments only work if you have downloaded the kickstart repo, not just copy pasted the
   -- init.lua. If you want these files, they are in the repository, so you can just download them and
   -- place them in the correct locations.
