@@ -159,6 +159,10 @@ vim.opt.listchars = { tab = '» ', trail = '·', nbsp = '␣' }
 
 -- optionally enable 24-bit colour
 vim.opt.termguicolors = true
+
+vim.opt.wrap = true
+vim.opt.linebreak = true
+
 -- Preview substitutions live, as you type!
 vim.o.inccommand = 'split'
 
