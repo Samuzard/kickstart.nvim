@@ -1,8 +1,7 @@
 --[[
 
 =====================================================================
-==================== READ THIS BEFORE CONTINUING ====================
-=====================================================================
+==================== READ THIS BEFORE CONTINUING ==================== =====================================================================
 ========                                    .-----.          ========
 ========         .----------------------.   | === |          ========
 ========         |.-""""""""""""""""""-.|   |-----|          ========
@@ -184,6 +183,8 @@ require('icy-night.init').colorscheme()
 
 -- [[ Basic Keymaps ]]
 --  See `:help vim.keymap.set()`
+
+vim.keymap.set('n', '<C-f>', '<cmd>silent !tmux neww tmux-sessionizer<CR>')
 
 -- Clear highlights on search when pressing <Esc> in normal mode
 --  See `:help hlsearch`
@@ -459,7 +460,11 @@ require('lazy').setup({
             },
           },
         },
-        -- pickers = {}
+        pickers = {
+          find_files = {
+            path_display = { 'truncate' },
+          },
+        },
         extensions = {
           ['ui-select'] = {
             require('telescope.themes').get_dropdown(),
@@ -1095,6 +1100,26 @@ require('lazy').setup({
         },
       },
 
+      -- Optional, by default when you use `:ObsidianFollowLink` on a link to an external
+      -- URL it will be ignored but you can customize this behavior here.
+      ---@param url string
+      follow_url_func = function(url)
+        -- Open the URL in the default web browser.
+        -- vim.fn.jobstart { 'open', url } -- Mac OS
+        vim.fn.jobstart { 'xdg-open', url } -- linux
+        -- vim.cmd(':silent exec "!start ' .. url .. '"') -- Windows
+        -- vim.ui.open(url) -- need Neovim 0.10.0+
+      end,
+
+      -- Optional, by default when you use `:ObsidianFollowLink` on a link to an image
+      -- file it will be ignored but you can customize this behavior here.
+      ---@param img string
+      follow_img_func = function(img)
+        -- vim.fn.jobstart { 'qlmanage', '-p', img } -- Mac OS quick look preview
+        vim.fn.jobstart { 'xdg-open', img } -- linux
+        -- vim.cmd(':silent exec "!start ' .. url .. '"') -- Windows
+      end,
+
       -- Where to put new notes. Valid options are
       --  * "current_dir" - put new notes in same directory as the current buffer.
       --  * "notes_subdir" - put new notes in the default notes subdirectory.
@@ -1224,6 +1249,55 @@ require('lazy').setup({
       on_close = function()
         -- function to run when Zen mode closes
       end,
+    },
+  },
+  {
+    'vhyrro/luarocks.nvim',
+    priority = 1001,
+    opts = {
+      rocks = { 'magick' },
+    },
+  },
+  {
+    '3rd/image.nvim',
+    build = false, -- so that it doesn't build the rock https://github.com/3rd/image.nvim/issues/91#issuecomment-2453430239
+    opts = {
+      backend = 'kitty',
+      processor = 'magick_cli', -- or "magick_rock"
+      integrations = {
+        markdown = {
+          enabled = true,
+          clear_in_insert_mode = false,
+          download_remote_images = true,
+          only_render_image_at_cursor = false,
+          only_render_image_at_cursor_mode = 'popup',
+          floating_windows = false, -- if true, images will be rendered in floating markdown windows
+          filetypes = { 'markdown', 'vimwiki' }, -- markdown extensions (ie. quarto) can go here
+        },
+        neorg = {
+          enabled = true,
+          filetypes = { 'norg' },
+        },
+        typst = {
+          enabled = true,
+          filetypes = { 'typst' },
+        },
+        html = {
+          enabled = false,
+        },
+        css = {
+          enabled = false,
+        },
+      },
+      max_width = nil,
+      max_height = nil,
+      max_width_window_percentage = nil,
+      max_height_window_percentage = 50,
+      window_overlap_clear_enabled = false, -- toggles images when windows are overlapped
+      window_overlap_clear_ft_ignore = { 'cmp_menu', 'cmp_docs', 'snacks_notif', 'scrollview', 'scrollview_sign' },
+      editor_only_render_when_focused = false, -- auto show/hide images when the editor gains/looses focus
+      tmux_show_only_in_active_window = false, -- auto show/hide images in the correct Tmux window (needs visual-activity off)
+      hijack_file_patterns = { '*.png', '*.jpg', '*.jpeg', '*.gif', '*.webp', '*.avif' }, -- render image files as images when opened
     },
   },
   -- The following comments only work if you have downloaded the kickstart repo, not just copy pasted the
