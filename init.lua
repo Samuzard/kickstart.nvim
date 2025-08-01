@@ -27,7 +27,7 @@ What is Kickstart?
     The goal is that you can read every line of code, top-to-bottom, understand
     what your configuration is doing, and modify it to suit your needs.
 
-    Once you've done that, you can start exploring, configuring and tinkering to
+    Once you've done that, you can start exploring, configuring and tinkering tfalseo
     make Neovim your own! That might mean leaving Kickstart just the way it is for a while
     or immediately breaking it into modular pieces. It's up to you!
 
@@ -224,6 +224,7 @@ vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper win
 
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
+vim.api.nvim_create_augroup('CustomMarkdownHighlights', { clear = true })
 
 -- Highlight when yanking (copying) text
 --  Try it with `yap` in normal mode
@@ -1059,7 +1060,7 @@ require('lazy').setup({
       workspaces = {
         {
           name = 'Noosphere',
-          path = '~/Documents/Noosphere',
+          path = '/home/objimphard/Documents/Noosphere/',
         },
       },
 
@@ -1165,15 +1166,44 @@ require('lazy').setup({
   },
   { 'echasnovski/mini.nvim', version = false },
   { 'nvim-tree/nvim-web-devicons', opts = {} },
+  -- In your plugins.lua or wherever you have your lazy.nvim setup
   {
     'MeanderingProgrammer/render-markdown.nvim',
-    dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-tree/nvim-web-devicons' }, -- if you use the mini.nvim suite
-    -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'echasnovski/mini.icons' }, -- if you use standalone mini plugins
-    -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-tree/nvim-web-devicons' }, -- if you prefer nvim-web-devicons
-    ---@module 'render-markdown'
-    ---@type render.md.UserConfig
-    opts = {},
-    completions = { blink = { enabled = true } },
+    dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-tree/nvim-web-devicons' },
+
+    init = function()
+      vim.api.nvim_set_hl(0, '@markup.heading.1.markdown', { fg = '#fefae0', bg = '#457b9d' })
+      vim.api.nvim_set_hl(0, 'MyMarkdownH1', { fg = '#1e1e2e', bg = '#fefae0' })
+
+      vim.api.nvim_set_hl(0, '@markup.heading.2.markdown', { fg = '#fefae0', bg = '#457b9d' })
+      vim.api.nvim_set_hl(0, 'MyMarkdownH2', { fg = '#1e1e2e', bg = '#fefae0' })
+
+      vim.api.nvim_set_hl(0, '@markup.heading.3.markdown', { fg = '#fefae0', bg = '#457b9d' })
+      vim.api.nvim_set_hl(0, 'MyMarkdownH3', { fg = '#1e1e2e', bg = '#fefae0' })
+
+      vim.api.nvim_set_hl(0, '@markup.heading.4.markdown', { fg = '#fefae0', bg = '#457b9d' })
+      vim.api.nvim_set_hl(0, 'MyMarkdownH4', { fg = '#1e1e2e', bg = '#fefae0' })
+
+      vim.api.nvim_set_hl(0, '@markup.heading.5.markdown', { fg = '#fefae0', bg = '#457b9d' })
+      vim.api.nvim_set_hl(0, 'MyMarkdownH5', { fg = '#1e1e2e', bg = '#fefae0' })
+    end,
+
+    opts = {
+      heading = {
+        width = 'full',
+
+        foregrounds = {
+          'MyMarkdownH1',
+          'MyMarkdownH2',
+          'MyMarkdownH3',
+        },
+        backgrounds = {
+          'MyMarkdownH1Bg',
+          'MyMarkdownH2Bg',
+          'MyMarkdownH3Bg',
+        },
+      },
+    },
   },
   {
     'iamcco/markdown-preview.nvim',
@@ -1211,11 +1241,12 @@ require('lazy').setup({
         width = 120,
         height = 1,
         options = {
+          -- cursorcolumn = false, -- disable cursor column,
           -- signcolumn = "no",
           -- number = false,
           -- relativenumber = false,
-          -- cursorline = false,
-          -- cursorcolumn = false,
+          cursorline = false,
+          cursorcolumn = false,
           -- foldcolumn = "0",
           -- list = false,
         },
@@ -1229,7 +1260,7 @@ require('lazy').setup({
         },
         twilight = { enabled = true },
         gitsigns = { enabled = false },
-        tmux = { enabled = false },
+        tmux = { enabled = true },
         kitty = {
           enabled = false,
           font = '+4',
@@ -1298,6 +1329,15 @@ require('lazy').setup({
       editor_only_render_when_focused = false, -- auto show/hide images when the editor gains/looses focus
       tmux_show_only_in_active_window = false, -- auto show/hide images in the correct Tmux window (needs visual-activity off)
       hijack_file_patterns = { '*.png', '*.jpg', '*.jpeg', '*.gif', '*.webp', '*.avif' }, -- render image files as images when opened
+    },
+  },
+  {
+    'pocco81/auto-save.nvim',
+    opts = {
+      -- You can leave this empty to use the default settings
+      -- or refer to the plugin's documentation for options.
+      -- For example, to only save on InsertLeave:
+      -- trigger_events = { "InsertLeave" }
     },
   },
   -- The following comments only work if you have downloaded the kickstart repo, not just copy pasted the
