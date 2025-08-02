@@ -1166,32 +1166,39 @@ require('lazy').setup({
   },
   { 'echasnovski/mini.nvim', version = false },
   { 'nvim-tree/nvim-web-devicons', opts = {} },
-  -- In your plugins.lua or wherever you have your lazy.nvim setup
   {
     'MeanderingProgrammer/render-markdown.nvim',
     dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-tree/nvim-web-devicons' },
-
     init = function()
+      require('nvim-web-devicons').setup {
+        override = {
+          c_sharp = {
+            icon = '#',
+            color = '#239120',
+            cterm_color = '65',
+            name = 'CSharp',
+          },
+        },
+      }
+      -- Existing highlight definitions
       vim.api.nvim_set_hl(0, '@markup.heading.1.markdown', { fg = '#fefae0', bg = '#457b9d' })
       vim.api.nvim_set_hl(0, 'MyMarkdownH1', { fg = '#1e1e2e', bg = '#fefae0' })
-
       vim.api.nvim_set_hl(0, '@markup.heading.2.markdown', { fg = '#fefae0', bg = '#457b9d' })
       vim.api.nvim_set_hl(0, 'MyMarkdownH2', { fg = '#1e1e2e', bg = '#fefae0' })
-
       vim.api.nvim_set_hl(0, '@markup.heading.3.markdown', { fg = '#fefae0', bg = '#457b9d' })
       vim.api.nvim_set_hl(0, 'MyMarkdownH3', { fg = '#1e1e2e', bg = '#fefae0' })
-
       vim.api.nvim_set_hl(0, '@markup.heading.4.markdown', { fg = '#fefae0', bg = '#457b9d' })
       vim.api.nvim_set_hl(0, 'MyMarkdownH4', { fg = '#1e1e2e', bg = '#fefae0' })
-
       vim.api.nvim_set_hl(0, '@markup.heading.5.markdown', { fg = '#fefae0', bg = '#457b9d' })
       vim.api.nvim_set_hl(0, 'MyMarkdownH5', { fg = '#1e1e2e', bg = '#fefae0' })
-    end,
 
+      vim.api.nvim_set_hl(0, 'RenderMarkdownCodeBlockBg', { bg = '#0c344d' }) -- Code block background color
+      vim.api.nvim_set_hl(0, 'RenderMarkdownCodeBorder', { fg = '#fefae0', bg = '#0c344d' })
+      vim.api.nvim_set_hl(0, 'MyInlineCode', { fg = '#fefae0', bg = '#0c344d' })
+    end,
     opts = {
       heading = {
         width = 'full',
-
         foregrounds = {
           'MyMarkdownH1',
           'MyMarkdownH2',
@@ -1201,6 +1208,49 @@ require('lazy').setup({
           'MyMarkdownH1Bg',
           'MyMarkdownH2Bg',
           'MyMarkdownH3Bg',
+        },
+      },
+      -- Modify the code configuration
+      code = {
+        enabled = true,
+        highlight = 'RenderMarkdownCodeBlockBg',
+        language = true,
+        language_icon = true,
+        language_name = true,
+        language_info = true,
+        language_pad = 0,
+        disable_background = { 'diff' },
+        width = 'block',
+        left_margin = 0,
+        left_pad = 0,
+        right_pad = 0,
+        min_width = 0,
+        border = 'hide',
+        language_border = '█',
+        language_left = '',
+        language_right = '',
+        above = '▄',
+        below = '▀',
+        inline = true,
+        inline_left = '',
+        inline_right = '',
+        inline_pad = 0,
+        highlight_border = 'RenderMarkdownCodeBorder', -- the highlight color of the code header
+        highlight_fallback = 'Normal',
+        highlight_inline = 'MyInlineCode', -- Try our custom inline highlight
+        style = 'full',
+      },
+      -- Added quote configuration here
+      quote = {
+        enabled = true,
+        icon = '▋',
+        highlight = {
+          'MyMarkdownQuoteColor',
+          'MyMarkdownQuoteColor',
+          'MyMarkdownQuoteColor',
+          'MyMarkdownQuoteColor',
+          'MyMarkdownQuoteColor',
+          'MyMarkdownQuoteColor',
         },
       },
     },
@@ -1292,6 +1342,7 @@ require('lazy').setup({
   {
     '3rd/image.nvim',
     build = false, -- so that it doesn't build the rock https://github.com/3rd/image.nvim/issues/91#issuecomment-2453430239
+    enabled = false,
     opts = {
       backend = 'kitty',
       processor = 'magick_cli', -- or "magick_rock"
