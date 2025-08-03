@@ -224,6 +224,23 @@ vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper win
 
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
+vim.api.nvim_create_autocmd({ 'BufEnter', 'BufWritePost' }, {
+  group = vim.api.nvim_create_augroup('LspCodeLensRefresh', { clear = true }),
+  callback = function(args)
+    -- Check if there's an active LSP client for the current buffer
+    -- that supports codeLens before attempting to refresh.
+    -- This prevents errors in buffers without LSP or without codeLens support.
+    local clients = vim.lsp.get_active_clients { bufnr = args.buf }
+    for _, client in ipairs(clients) do
+      if client.supports_method and client:supports_method 'textDocument/codeLens' then
+        vim.lsp.codelens.refresh { bufnr = args.buf } -- Refresh only the current buffer
+        return -- Only need to refresh once per buffer
+      end
+    end
+  end,
+  desc = 'Refresh LSP CodeLens on buffer enter or after save',
+})
+
 vim.api.nvim_create_augroup('CustomMarkdownHighlights', { clear = true })
 
 -- Highlight when yanking (copying) text
@@ -529,13 +546,68 @@ require('lazy').setup({
     },
   },
   {
+    'seblyng/roslyn.nvim',
+    ---@module 'roslyn.config'
+    ---@type RoslynNvimConfig
+    opts = {
+      -- "auto" | "roslyn" | "off"
+      --
+      -- - "auto": Does nothing for filewatching, leaving everything as default
+      -- - "roslyn": Turns off neovim filewatching which will make roslyn do the filewatching
+      -- - "off": Hack to turn off all filewatching. (Can be used if you notice performance issues)
+      filewatching = 'roslyn',
+
+      -- Optional function that takes an array of targets as the only argument. Return the target you
+      -- want to use. If it returns `nil`, then it falls back to guessing the target like normal
+      -- Example:
+      --
+      -- choose_target = function(target)
+      --     return vim.iter(target):find(function(item)
+      --         if string.match(item, "Foo.sln") then
+      --             return item
+      --         end
+      --     end)
+      -- end
+      choose_target = nil,
+
+      -- Optional function that takes the selected target as the only argument.
+      -- Returns a boolean of whether it should be ignored to attach to or not
+      --
+      -- I am for example using this to disable a solution with a lot of .NET Framework code on mac
+      -- Example:
+      --
+      -- ignore_target = function(target)
+      --     return string.match(target, "Foo.sln") ~= nil
+      -- end
+      ignore_target = nil,
+
+      -- Whether or not to look for solution files in the child of the (root).
+      -- Set this to true if you have some projects that are not a child of the
+      -- directory with the solution file
+      broad_search = true,
+
+      -- Whether or not to lock the solution target after the first attach.
+      -- This will always attach to the target in `vim.g.roslyn_nvim_selected_solution`.
+      -- NOTE: You can use `:Roslyn target` to change the target
+      lock_target = false,
+    },
+  },
+  {
     -- Main LSP Configuration
     'neovim/nvim-lspconfig',
     dependencies = {
       -- Automatically install LSPs and related tools to stdpath for Neovim
       -- Mason must be loaded before its dependents so we need to set it up here.
       -- NOTE: `opts = {}` is the same as calling `require('mason').setup({})`
-      { 'mason-org/mason.nvim', opts = {} },
+      {
+        'mason-org/mason.nvim',
+        opts = {
+          registries = {
+            'github:mason-org/mason-registry',
+            'github:Crashdummyy/mason-registry', -- This is the crucial custom registry for roslyn
+          },
+        },
+      },
       'mason-org/mason-lspconfig.nvim',
       'WhoIsSethDaniel/mason-tool-installer.nvim',
 
@@ -736,6 +808,7 @@ require('lazy').setup({
         -- But for many setups, the LSP (`ts_ls`) will work just fine
         -- ts_ls = {},
         --
+        roslyn = {},
 
         lua_ls = {
           -- cmd = { ... },
@@ -769,6 +842,7 @@ require('lazy').setup({
       local ensure_installed = vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
         'stylua', -- Used to format Lua code
+        'roslyn',
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
@@ -786,10 +860,54 @@ require('lazy').setup({
           end,
         },
       }
+
+      vim.lsp.config('roslyn', {
+        -- Optional on_attach function specific to Roslyn, if you need one
+        -- on_attach = function(client, bufnr)
+        --     -- print("Roslyn language server attached for C# files!")
+        --     if client.supports_method and client:supports_method("textDocument/inlayHint") then
+        --         vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
+        --     end
+        -- end,
+        settings = {
+          ['csharp|background_analysis'] = {
+            dotnet_analyzer_diagnostics_scope = 'fullSolution',
+            dotnet_compiler_diagnostics_scope = 'fullSolution',
+          },
+          ['csharp|code_lens'] = {
+            dotnet_enable_references_code_lens = true,
+            dotnet_enable_tests_code_lens = true,
+          },
+          ['csharp|completion'] = {
+            dotnet_provide_regex_completions = true,
+            dotnet_show_completion_items_from_unimported_namespaces = true,
+            dotnet_show_name_completion_suggestions = true,
+          },
+          ['csharp|inlay_hints'] = {
+            csharp_enable_inlay_hints_for_implicit_object_creation = true,
+            csharp_enable_inlay_hints_for_implicit_variable_types = true,
+            csharp_enable_inlay_hints_for_lambda_parameter_types = true,
+            csharp_enable_inlay_hints_for_types = true,
+            dotnet_enable_inlay_hints_for_indexer_parameters = true,
+            dotnet_enable_inlay_hints_for_literal_parameters = true,
+            dotnet_enable_inlay_hints_for_object_creation_parameters = true,
+            dotnet_enable_inlay_hints_for_other_parameters = true,
+            dotnet_enable_inlay_hints_for_parameters = true,
+            dotnet_suppress_inlay_hints_for_parameters_that_differ_only_by_suffix = false,
+            dotnet_suppress_inlay_hints_for_parameters_that_match_argument_name = false,
+            dotnet_suppress_inlay_hints_for_parameters_that_match_method_intent = false,
+          },
+          ['csharp|symbol_search'] = {
+            dotnet_search_reference_assemblies = true,
+          },
+          ['csharp|formatting'] = {
+            dotnet_organize_imports_on_format = true,
+          },
+        },
+      })
     end,
   },
-
-  { -- Autoformat
+  {
     'stevearc/conform.nvim',
     event = { 'BufWritePre' },
     cmd = { 'ConformInfo' },
@@ -806,9 +924,6 @@ require('lazy').setup({
     opts = {
       notify_on_error = false,
       format_on_save = function(bufnr)
-        -- Disable "format_on_save lsp_fallback" for languages that don't
-        -- have a well standardized coding style. You can add additional
-        -- languages here or re-enable it for the disabled ones.
         local disable_filetypes = { c = true, cpp = true }
         if disable_filetypes[vim.bo[bufnr].filetype] then
           return nil
@@ -816,20 +931,17 @@ require('lazy').setup({
           return {
             timeout_ms = 500,
             lsp_format = 'fallback',
+            undojoin = true, -- <--- ADD THIS LINE!
           }
         end
       end,
       formatters_by_ft = {
         lua = { 'stylua' },
-        -- Conform can also run multiple formatters sequentially
-        -- python = { "isort", "black" },
-        --
-        -- You can use 'stop_after_first' to run the first available formatter from the list
-        -- javascript = { "prettierd", "prettier", stop_after_first = true },
+        -- Add csharp formatter here if you have one, e.g., 'csharpier'
+        -- csharp = { "csharpier" },
       },
     },
   },
-
   { -- Autocompletion
     'saghen/blink.cmp',
     event = 'VimEnter',
@@ -1170,16 +1282,6 @@ require('lazy').setup({
     'MeanderingProgrammer/render-markdown.nvim',
     dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-tree/nvim-web-devicons' },
     init = function()
-      require('nvim-web-devicons').setup {
-        override = {
-          c_sharp = {
-            icon = '#',
-            color = '#239120',
-            cterm_color = '65',
-            name = 'CSharp',
-          },
-        },
-      }
       -- Existing highlight definitions
       vim.api.nvim_set_hl(0, '@markup.heading.1.markdown', { fg = '#fefae0', bg = '#457b9d' })
       vim.api.nvim_set_hl(0, 'MyMarkdownH1', { fg = '#1e1e2e', bg = '#fefae0' })
