@@ -593,6 +593,152 @@ require('lazy').setup({
     },
   },
   {
+    'GustavEikaas/easy-dotnet.nvim',
+    dependencies = { 'nvim-lua/plenary.nvim', 'nvim-telescope/telescope.nvim' },
+    config = function()
+      local job_indicator = { require('easy-dotnet.ui-modules.jobs').lualine }
+
+      local function get_secret_path(secret_guid)
+        local path = ''
+        local home_dir = vim.fn.expand '~'
+        if require('easy-dotnet.extensions').isWindows() then
+          local secret_path = home_dir .. '\\AppData\\Roaming\\Microsoft\\UserSecrets\\' .. secret_guid .. '\\secrets.json'
+          path = secret_path
+        else
+          local secret_path = home_dir .. '/.microsoft/usersecrets/' .. secret_guid .. '/secrets.json'
+          path = secret_path
+        end
+        return path
+      end
+
+      local dotnet = require 'easy-dotnet'
+      dotnet.setup {
+        log_level = vim.log.levels.DEBUG,
+        test_runner = {
+          viewmode = 'float',
+          vsplit_width = nil,
+          vsplit_pos = nil,
+          enable_buffer_test_execution = true,
+          noBuild = true,
+          icons = {
+            passed = '',
+            skipped = '',
+            failed = '',
+            success = '',
+            reload = '',
+            test = '',
+            sln = '󰘐',
+            project = '󰘐',
+            dir = '',
+            dir = '',
+            package = '',
+          },
+          mappings = {
+            -- un_test_from_buffer = { lhs = '<leader>r', desc = 'run test from buffer' },
+            -- filter_failed_tests = { lhs = '<leader>fe', desc = 'filter failed tests' },
+            -- debug_test = { lhs = '<leader>d', desc = 'debug test' },
+            -- go_to_file = { lhs = 'g', desc = 'go to file' },
+            -- run_all = { lhs = '<leader>R', desc = 'run all tests' },
+            -- run = { lhs = '<leader>r', desc = 'run test' },
+            -- peek_stacktrace = { lhs = '<leader>p', desc = 'peek stacktrace of failed test' },
+            -- expand = { lhs = 'o', desc = 'expand' },
+            -- expand_node = { lhs = 'E', desc = 'expand node' },
+            -- expand_all = { lhs = '-', desc = 'expand all' },
+            -- collapse_all = { lhs = 'W', desc = 'collapse all' },
+            -- close = { lhs = 'q', desc = 'close testrunner' },
+            -- refresh_testrunner = { lhs = '<C-r>', desc = 'refresh testrunner' },
+          },
+          additional_args = {},
+        },
+        new = {
+          project = {
+            prefix = 'sln',
+          },
+        },
+        terminal = function(path, action, args)
+          local commands = {
+            run = function()
+              return string.format('dotnet run --project %s %s', path, args)
+            end,
+            test = function()
+              return string.format('dotnet test %s %s', path, args)
+            end,
+            restore = function()
+              return string.format('dotnet restore %s %s', path, args)
+            end,
+            build = function()
+              return string.format('dotnet build %s %s', path, args)
+            end,
+            watch = function()
+              return string.format('dotnet watch --project %s %s', path, args)
+            end,
+          }
+          local command = commands[action]() .. '\r'
+          vim.cmd 'vsplit'
+          vim.cmd('term ' .. command)
+        end,
+        secrets = {
+          path = get_secret_path,
+        },
+        csproj_mappings = true,
+        fsproj_mappings = true,
+        auto_bootstrap_namespace = {
+          type = 'block_scoped',
+          enabled = true,
+        },
+        picker = 'telescope',
+        background_scanning = true,
+        notifications = {
+          handler = false,
+        },
+      }
+
+      vim.api.nvim_create_user_command('Secrets', function()
+        dotnet.secrets()
+      end, {})
+
+      vim.keymap.set('n', '<C-p>', function()
+        dotnet.run_project()
+      end)
+    end,
+  },
+  {
+    'nvim-lualine/lualine.nvim',
+    dependencies = { 'nvim-tree/nvim-web-devicons' }, -- Recommended for icons
+    opts = {
+      options = {
+        icons_enabled = true, -- Set to false if you don't use a Nerd Font
+        theme = 'auto', -- Or a specific theme like 'dracula', 'tokyonight'
+        component_separators = { left = '', right = '' }, -- Separator between components
+        section_separators = { left = '', right = '' }, -- Separator between sections
+        sections = {
+          lualine_a = { 'mode', job_indicator }, -- Mode (NORMAL, INSERT, VISUAL, etc.)
+          lualine_b = { 'branch', 'diff', 'diagnostics' }, -- Git branch, diff status, LSP diagnostics
+          lualine_c = { 'filename' }, -- Current filename
+          lualine_x = { 'encoding', 'fileformat', 'filetype' }, -- Encoding, file format, file type
+          lualine_y = { 'progress' }, -- Progress indicator
+          lualine_z = { 'location' }, -- Cursor location (line:column)
+        },
+        inactive_sections = { -- What to show when the window is not active
+          lualine_a = { 'filename' },
+          lualine_b = {},
+          lualine_c = {},
+          lualine_x = { 'location' },
+          lualine_y = {},
+          lualine_z = {},
+        },
+        extensions = { 'nvim-tree', 'lazy' }, -- Example extensions
+      },
+      -- You can define your own themes or override existing ones
+      -- themes = {
+      --   my_custom_theme = {
+      --     normal = { a = { fg = '#ffffff', bg = '#457b9d' } },
+      --   },
+      -- },
+      -- globs = {} -- Define specific lualines for certain files
+    }, -- <--- Your Lualine configuration ends here}, -- Your configuration will go here
+  },
+  {
     -- Main LSP Configuration
     'neovim/nvim-lspconfig',
     dependencies = {
@@ -937,6 +1083,7 @@ require('lazy').setup({
       end,
       formatters_by_ft = {
         lua = { 'stylua' },
+        csharp = { 'csharpier' },
         -- Add csharp formatter here if you have one, e.g., 'csharpier'
         -- csharp = { "csharpier" },
       },
@@ -1020,12 +1167,19 @@ require('lazy').setup({
       },
 
       sources = {
-        default = { 'lsp', 'path', 'snippets', 'lazydev', 'obsidian', 'obsidian_new', 'obsidian_tags' },
+        default = { 'lsp', 'easy-dotnet', 'path', 'snippets', 'lazydev', 'obsidian', 'obsidian_new', 'obsidian_tags' },
         providers = {
           lazydev = { module = 'lazydev.integrations.blink', score_offset = 100 },
           obsidian = { name = 'obsidian', module = 'blink.compat.source' },
           obsidian_new = { name = 'obsidian_new', module = 'blink.compat.source' },
           obsidian_tags = { name = 'obsidian_tags', module = 'blink.compat.source' },
+          ['easy-dotnet'] = { --
+            name = 'easy-dotnet',
+            enabled = true,
+            module = 'easy-dotnet.completion.blink',
+            score_offset = 10000, -- Give it a high score so it appears prominently
+            async = true,
+          },
         },
       },
 
@@ -1147,6 +1301,34 @@ require('lazy').setup({
       filters = {
         dotfiles = true,
       },
+      -- MODIFIED on_attach FUNCTION (CORRECTED)
+      -- on_attach = function(bufnr)
+      --   local api = require 'nvim-tree.api'
+      --   local function opts(desc)
+      --     return { desc = 'nvim-tree: ' .. desc, buffer = bufnr, noremap = true, silent = true, nowait = true }
+      --   end
+
+      --   -- IMPORTANT: Re-bind essential default NvimTree keymaps manually
+      --   -- These are the most common default actions you'd want to preserve
+      --   vim.keymap.set('n', 'l', api.node.open.edit, opts 'Open (Edit)')
+      --   vim.keymap.set('n', '<CR>', api.node.open.edit, opts 'Open (Edit)')
+      --   vim.keymap.set('n', 'h', api.node.navigate.parent_close, opts 'Close Directory / Go Up')
+      --   vim.keymap.set('n', 'v', api.node.open.vertical, opts 'Open (Vertical Split)')
+      --   vim.keymap.set('n', 's', api.node.open.horizontal, opts 'Open (Horizontal Split)')
+      --   vim.keymap.set('n', 'q', api.tree.close, opts 'Close')
+      --   vim.keymap.set('n', '<2-LeftMouse>', api.node.open.edit, opts 'Open (Edit)') -- Double click
+
+      --   -- Your custom keymap for easy-dotnet.nvim
+      --   vim.keymap.set('n', 'A', function()
+      --     local node = api.tree.get_node_under_cursor()
+      --     local path = node.type == 'directory' and node.absolute_path or vim.fs.dirname(node.absolute_path)
+      --     require('easy-dotnet').create_new_item(path)
+      --   end, opts 'Create file from dotnet template')
+
+      --   -- You can add other default keymaps you use frequently from nvim-tree's documentation
+      --   -- (e.g., 'o' for open, 'x' for close directory, 'P' for root node, 'R' for refresh, etc.)
+      --   -- A full list can be found in :h nvim-tree-mappings
+      -- end,
     },
   },
   {
