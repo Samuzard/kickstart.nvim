@@ -613,7 +613,6 @@ require('lazy').setup({
 
       local dotnet = require 'easy-dotnet'
       dotnet.setup {
-        log_level = vim.log.levels.DEBUG,
         test_runner = {
           viewmode = 'float',
           vsplit_width = nil,
