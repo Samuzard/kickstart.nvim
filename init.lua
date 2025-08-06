@@ -702,42 +702,6 @@ require('lazy').setup({
     end,
   },
   {
-    'nvim-lualine/lualine.nvim',
-    dependencies = { 'nvim-tree/nvim-web-devicons' }, -- Recommended for icons
-    opts = {
-      options = {
-        icons_enabled = true, -- Set to false if you don't use a Nerd Font
-        theme = 'auto', -- Or a specific theme like 'dracula', 'tokyonight'
-        component_separators = { left = '', right = '' }, -- Separator between components
-        section_separators = { left = '', right = '' }, -- Separator between sections
-        sections = {
-          lualine_a = { 'mode', job_indicator }, -- Mode (NORMAL, INSERT, VISUAL, etc.)
-          lualine_b = { 'branch', 'diff', 'diagnostics' }, -- Git branch, diff status, LSP diagnostics
-          lualine_c = { 'filename' }, -- Current filename
-          lualine_x = { 'encoding', 'fileformat', 'filetype' }, -- Encoding, file format, file type
-          lualine_y = { 'progress' }, -- Progress indicator
-          lualine_z = { 'location' }, -- Cursor location (line:column)
-        },
-        inactive_sections = { -- What to show when the window is not active
-          lualine_a = { 'filename' },
-          lualine_b = {},
-          lualine_c = {},
-          lualine_x = { 'location' },
-          lualine_y = {},
-          lualine_z = {},
-        },
-        extensions = { 'nvim-tree', 'lazy' }, -- Example extensions
-      },
-      -- You can define your own themes or override existing ones
-      -- themes = {
-      --   my_custom_theme = {
-      --     normal = { a = { fg = '#ffffff', bg = '#457b9d' } },
-      --   },
-      -- },
-      -- globs = {} -- Define specific lualines for certain files
-    }, -- <--- Your Lualine configuration ends here}, -- Your configuration will go here
-  },
-  {
     -- Main LSP Configuration
     'neovim/nvim-lspconfig',
     dependencies = {
@@ -1667,6 +1631,7 @@ require('lazy').setup({
   },
   {
     'pocco81/auto-save.nvim',
+    enabled = false,
     opts = {
       -- You can leave this empty to use the default settings
       -- or refer to the plugin's documentation for options.
