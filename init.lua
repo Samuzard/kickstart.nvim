@@ -1674,6 +1674,29 @@ require('lazy').setup({
     event = 'InsertCharPre', -- Load the plugin when a character is inserted
     opts = {}, -- This will call require('autoclose').setup() with default options
   },
+  {
+    "supermaven-inc/supermaven-nvim",
+    config = function()
+      require("supermaven-nvim").setup({
+        keymaps = {
+            accept_suggestion = "<Tab>",
+            clear_suggestion = "<C-]>",
+            accept_word = "<C-j>",
+          },
+          ignore_filetypes = { cpp = true }, -- or { "cpp", }
+          color = {
+            suggestion_color = "#ffffff",
+            cterm = 244,
+          },
+          log_level = "info", -- set to "off" to disable logging completely
+          disable_inline_completion = false, -- disables inline completion for use with cmp
+          disable_keymaps = false, -- disables built in keymaps for more manual control
+          condition = function()
+            return false
+          end 
+      })
+    end,
+  },
   -- The following comments only work if you have downloaded the kickstart repo, not just copy pasted the
   -- init.lua. If you want these files, they are in the repository, so you can just download them and
   -- place them in the correct locations.
