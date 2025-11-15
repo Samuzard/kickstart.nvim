@@ -190,6 +190,9 @@ vim.keymap.set('n', '<C-f>', '<cmd>silent !tmux neww tmux-sessionizer<CR>')
 --  See `:help hlsearch`
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 
+vim.keymap.set('n', '[b', ':bprevious<CR>', { desc = 'Previous buffer' })
+vim.keymap.set('n', ']b', ':bnext<CR>', { desc = 'Next buffer' })
+
 -- Diagnostic keymaps
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
 
@@ -1675,26 +1678,26 @@ require('lazy').setup({
     opts = {}, -- This will call require('autoclose').setup() with default options
   },
   {
-    "supermaven-inc/supermaven-nvim",
+    'supermaven-inc/supermaven-nvim',
     config = function()
-      require("supermaven-nvim").setup({
+      require('supermaven-nvim').setup {
         keymaps = {
-            accept_suggestion = "<Tab>",
-            clear_suggestion = "<C-]>",
-            accept_word = "<C-j>",
-          },
-          ignore_filetypes = { cpp = true }, -- or { "cpp", }
-          color = {
-            suggestion_color = "#ffffff",
-            cterm = 244,
-          },
-          log_level = "info", -- set to "off" to disable logging completely
-          disable_inline_completion = false, -- disables inline completion for use with cmp
-          disable_keymaps = false, -- disables built in keymaps for more manual control
-          condition = function()
-            return false
-          end 
-      })
+          accept_suggestion = '<Tab>',
+          clear_suggestion = '<C-]>',
+          accept_word = '<C-j>',
+        },
+        ignore_filetypes = { cpp = true }, -- or { "cpp", }
+        color = {
+          suggestion_color = '#ffffff',
+          cterm = 244,
+        },
+        log_level = 'info', -- set to "off" to disable logging completely
+        disable_inline_completion = false, -- disables inline completion for use with cmp
+        disable_keymaps = false, -- disables built in keymaps for more manual control
+        condition = function()
+          return false
+        end,
+      }
     end,
   },
   -- The following comments only work if you have downloaded the kickstart repo, not just copy pasted the
